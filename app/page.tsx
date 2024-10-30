@@ -1,101 +1,140 @@
-import Image from "next/image";
+"use client";
+
+import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useRef, useState, useTransition } from "react";
+import { searchFood } from "./actions";
+import { SearchResults } from "@/components/search-results";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [isPending, startTransition] = useTransition();
+  const [searchResults, setSearchResults] = useState<any>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  async function handleSearch(formData: FormData) {
+    const query = formData.get('query') as string;
+    
+    startTransition(async () => {
+      try {
+        const results = await searchFood(query);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search failed:', error);
+        // Handle error state here
+      }
+    });
+
+    // Optionally clear the form
+    formRef.current?.reset();
+  }
+
+  return (
+    <main className="min-h-screen p-4 sm:p-8 flex flex-col gap-8">
+      {/* Search Section */}
+      <div className="w-full max-w-3xl mx-auto">
+        <form 
+          ref={formRef}
+          action={handleSearch}
+          className="flex gap-2"
+        >
+          <div className="relative flex-1">
+            <Input
+              name="query"
+              type="text"
+              placeholder="Search for food..."
+              className="w-full"
+              required
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? (
+              <div className="size-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <SearchIcon className="size-4" />
+                <span className="hidden sm:inline ml-2">Search</span>
+              </>
+            )}
+          </Button>
+        </form>
+
+        {/* Search Results */}
+        {searchResults && (
+          <div className="mt-4">
+            <SearchResults results={searchResults} />
+          </div>
+        )}
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 w-full max-w-3xl mx-auto">
+        {/* Protein */}
+        <div className="bg-chart-1/10 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+          <div className="flex items-center gap-2 text-emerald-500 text-sm mb-1">
+            <ArrowUpIcon className="size-4" />
+            <span>+12.5%</span>
+          </div>
+          <span className="text-3xl font-bold text-chart-1">45g</span>
+          <span className="text-sm text-muted-foreground">/ 150g</span>
+          <span className="text-sm font-medium mt-2">Protein</span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* Carbs */}
+        <div className="bg-chart-2/10 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+          <div className="flex items-center gap-2 text-red-500 text-sm mb-1">
+            <ArrowDownIcon className="size-4" />
+            <span>-5.2%</span>
+          </div>
+          <span className="text-3xl font-bold text-chart-2">180g</span>
+          <span className="text-sm text-muted-foreground">/ 300g</span>
+          <span className="text-sm font-medium mt-2">Carbs</span>
+        </div>
+
+        {/* Fats */}
+        <div className="bg-chart-3/10 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+          <div className="flex items-center gap-2 text-emerald-500 text-sm mb-1">
+            <ArrowUpIcon className="size-4" />
+            <span>+8.3%</span>
+          </div>
+          <span className="text-3xl font-bold text-chart-3">28g</span>
+          <span className="text-sm text-muted-foreground">/ 65g</span>
+          <span className="text-sm font-medium mt-2">Fats</span>
+        </div>
+
+        {/* Calories */}
+        <div className="bg-chart-4/10 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+          <div className="flex items-center gap-2 text-emerald-500 text-sm mb-1">
+            <ArrowUpIcon className="size-4" />
+            <span>+15.8%</span>
+          </div>
+          <span className="text-3xl font-bold text-chart-4">1250</span>
+          <span className="text-sm text-muted-foreground">/ 2500</span>
+          <span className="text-sm font-medium mt-2">Calories</span>
+        </div>
+
+        {/* Water */}
+        <div className="bg-chart-5/10 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+          <div className="flex items-center gap-2 text-emerald-500 text-sm mb-1">
+            <ArrowUpIcon className="size-4" />
+            <span>+20.0%</span>
+          </div>
+          <span className="text-3xl font-bold text-chart-5">1.2L</span>
+          <span className="text-sm text-muted-foreground">/ 2.5L</span>
+          <span className="text-sm font-medium mt-2">Water</span>
+        </div>
+
+        {/* Weight */}
+        <div className="bg-muted rounded-lg p-6 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+          <div className="flex items-center gap-2 text-red-500 text-sm mb-1">
+            <ArrowDownIcon className="size-4" />
+            <span>-2.1%</span>
+          </div>
+          <span className="text-3xl font-bold">75kg</span>
+          <span className="text-sm text-muted-foreground">Target: 70kg</span>
+          <span className="text-sm font-medium mt-2">Weight</span>
+        </div>
+      </div>
+    </main>
   );
 }
