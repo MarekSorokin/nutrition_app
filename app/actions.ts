@@ -2,122 +2,111 @@
 
 import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma"
-import { z } from "zod" // You'll need to add zod to your dependencies
+import { z } from "zod"
+import { OpenFoodFactsProduct, OpenFoodFactsResponse, Product, SaveFoodInput, SearchResults } from "@/types/food"
 
-// Validation schema for food data
+// Validation schemas
 const foodSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1),
   brand: z.string().optional(),
-  image: z.string().optional(),
-  calories: z.number(),
-  proteins: z.number(),
-  carbs: z.number(),
-  fats: z.number(),
+  image: z.string().url().optional(),
+  calories: z.number().min(0),
+  proteins: z.number().min(0),
+  carbs: z.number().min(0),
+  fats: z.number().min(0),
 })
 
-// First, let's add a function to check if food exists in DB
-export async function getFoodFromDb(name: string) {
-  if (!name || typeof name !== 'string') {
-    return null;
+// Helper functions
+const transformOpenFoodFactsProduct = (product: OpenFoodFactsProduct, isCzech = false): Product => ({
+  name: product.product_name,
+  image: product.image_url,
+  nutritionPer100g: {
+    calories: Number(product.nutriments['energy-kcal_100g'] || 0),
+    proteins: Number(product.nutriments.proteins_100g || 0),
+    carbs: Number(product.nutriments.carbohydrates_100g || 0),
+    fats: Number(product.nutriments.fat_100g || 0),
+    fiber: Number(product.nutriments.fiber_100g || 0),
+  },
+  brand: product.brands,
+  isCzech,
+  canBeSaved: true,
+})
+
+// API functions
+async function fetchOpenFoodFactsProducts(query: string, isOnlyCzech = false): Promise<OpenFoodFactsResponse> {
+  const params = new URLSearchParams({
+    search_terms: query,
+    search_simple: '1',
+    action: 'process',
+    json: '1',
+    page_size: '5',
+    fields: 'product_name,image_url,nutriments,nutrition_grades,brands,quantity,countries_tags',
+  })
+
+  if (isOnlyCzech) {
+    params.append('tagtype_0', 'countries')
+    params.append('tag_contains_0', 'contains')
+    params.append('tag_0', 'czech-republic')
+    params.append('sort_by', 'popularity_key')
   }
 
+  const response = await fetch(
+    `https://world.openfoodfacts.org/cgi/search.pl?${params}`
+  )
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch from Open Food Facts')
+  }
+
+  return response.json()
+}
+
+// Main functions
+export async function getFoodFromDb(name: string) {
+  if (!name?.trim()) return null
+
   try {
-    const food = await prisma.food.findFirst({
+    return await prisma.food.findFirst({
       where: {
         OR: [
-          {
-            name: {
-              equals: name.trim(),
-              mode: 'insensitive', // Case insensitive search
-            }
-          },
-          {
-            brand: {
-              equals: name.trim(),
-              mode: 'insensitive', // Case insensitive search
-            }
-          }
+          { name: { contains: name.trim(), mode: 'insensitive' } },
+          { brand: { contains: name.trim(), mode: 'insensitive' } }
         ]
       },
     })
-    return food
   } catch (error) {
     console.error('Database search error:', error)
     return null
   }
 }
 
-// Function to save food to DB
-export async function saveFood(
-  data: z.infer<typeof foodSchema>
-) {
+export async function saveFood(data: SaveFoodInput) {
   try {
-    // Validate the input data
-    const validatedData = foodSchema.parse({
-      name: data.name,
-      brand: data.brand,
-      image: data.image,
-      calories: Number(data.calories),
-      proteins: Number(data.proteins),
-      carbs: Number(data.carbs),
-      fats: Number(data.fats),
-    });
-
-    // Create food record with only the fields that exist in the schema
+    const validatedData = foodSchema.parse(data)
+    
     const food = await prisma.food.create({
-      data: {
-        name: validatedData.name,
-        brand: validatedData.brand,
-        image: validatedData.image,
-        calories: validatedData.calories,
-        proteins: validatedData.proteins,
-        carbs: validatedData.carbs,
-        fats: validatedData.fats,
-      }
+      data: validatedData
     })
 
     revalidatePath('/')
     return { success: true, food }
   } catch (error) {
     console.error('Failed to save food:', error)
+    if (error instanceof z.ZodError) {
+      return { success: false, error: 'Invalid food data' }
+    }
     return { success: false, error: 'Failed to save food' }
   }
 }
 
-// Types for Open Food Facts API response
-interface ProductResponse {
-  count: number;
-  page: number;
-  products: Array<{
-    product_name: string;
-    image_url?: string;
-    nutriments: {
-      'energy-kcal_100g'?: number;
-      proteins_100g?: number;
-      carbohydrates_100g?: number;
-      fat_100g?: number;
-      fiber_100g?: number;
-    };
-    nutrition_grades?: string;
-    brands?: string;
-    quantity?: string;
-    countries_tags?: string[];
-  }>;
-}
-
-// Modified search function
-export async function searchFood(query: string) {
+export async function searchFood(query: string): Promise<SearchResults> {
   if (!query?.trim()) {
-    return {
-      fromDb: false,
-      products: []
-    };
+    return { fromDb: false, products: [] }
   }
 
   // First check in database
   const dbFood = await getFoodFromDb(query)
   if (dbFood) {
-    // Transform database food to match API format
     return {
       fromDb: true,
       products: [{
@@ -129,120 +118,44 @@ export async function searchFood(query: string) {
           carbs: dbFood.carbs,
           fats: dbFood.fats,
         },
-        brand: dbFood.brand || 'Unknown brand',
-        canBeSaved: false, // Already in database
-        isCzech: false, // We don't store this info in DB
+        brand: dbFood.brand || undefined,
+        canBeSaved: false,
       }]
     }
   }
 
   try {
-    // First, try to search specifically in Czech products
-    const czechResponse = await fetch(
-      `https://world.openfoodfacts.org/cgi/search.pl?` + 
-      new URLSearchParams({
-        search_terms: query,
-        search_simple: '1',
-        action: 'process',
-        json: '1',
-        page_size: '5',
-        tagtype_0: 'countries',
-        tag_contains_0: 'contains',
-        tag_0: 'czech-republic',
-        sort_by: 'popularity_key',  // Sort by popularity
-        fields: 'product_name,image_url,nutriments,nutrition_grades,brands,quantity,countries_tags'
-      })
-    );
+    const [czechData, worldData] = await Promise.all([
+      fetchOpenFoodFactsProducts(query, true),
+      fetchOpenFoodFactsProducts(query),
+    ])
 
-    // Then get worldwide products as a fallback
-    const worldResponse = await fetch(
-      `https://world.openfoodfacts.org/cgi/search.pl?` +
-      new URLSearchParams({
-        search_terms: query,
-        search_simple: '1',
-        action: 'process',
-        json: '1',
-        page_size: '5',
-        fields: 'product_name,image_url,nutriments,nutrition_grades,brands,quantity,countries_tags'
-      })
-    );
+    const czechProducts = czechData.products.map(p => transformOpenFoodFactsProduct(p, true))
+    const worldProducts = worldData.products
+      .filter(wp => !czechData.products.some(cp => cp.product_name === wp.product_name))
+      .map(p => transformOpenFoodFactsProduct(p, false))
 
-    if (!czechResponse.ok || !worldResponse.ok) {
-      throw new Error('Failed to fetch data from Open Food Facts');
-    }
-
-    const czechData: ProductResponse = await czechResponse.json();
-    const worldData: ProductResponse = await worldResponse.json();
-
-    // Combine and format the results
-    const allProducts = [
-      ...czechData.products.map(product => ({
-        ...product,
-        isCzech: true
-      })),
-      ...worldData.products
-        .filter(worldProduct => 
-          // Filter out products that are already in Czech results
-          !czechData.products.some(czechProduct => 
-            czechProduct.product_name === worldProduct.product_name
-          )
-        )
-        .map(product => ({
-          ...product,
-          isCzech: false
-        }))
-    ];
-
-    // Transform the data to a more usable format
-    const formattedResults = allProducts.map(product => ({
-      name: product.product_name,
-      image: product.image_url,
-      nutritionPer100g: {
-        calories: Number(product.nutriments['energy-kcal_100g'] || 0),
-        proteins: Number(product.nutriments.proteins_100g || 0),
-        carbs: Number(product.nutriments.carbohydrates_100g || 0),
-        fats: Number(product.nutriments.fat_100g || 0),
-        fiber: Number(product.nutriments.fiber_100g || 0),
-      },
-      nutritionGrade: product.nutrition_grades?.toUpperCase() || 'N/A',
-      brand: product.brands || 'Unknown brand',
-      quantity: product.quantity || 'N/A',
-      isCzech: product.isCzech || false,
-    }));
-
-    // Modified return format to indicate source
     return {
       fromDb: false,
       total: czechData.count + worldData.count,
-      page: 1,
-      products: formattedResults.map(product => ({
-        ...product,
-        canBeSaved: true, // Flag to show save button in UI
-      })),
-    };
-
+      products: [...czechProducts, ...worldProducts]
+    }
   } catch (error) {
-    console.error('Search error:', error);
-    throw new Error('Failed to search food in Open Food Facts database');
+    console.error('Search error:', error)
+    return { fromDb: false, products: [] }
   }
-} 
+}
 
-// Add a new action for fetching online results
-export async function searchOnline(query: string, existingResults: any) {
+export async function searchOnline(query: string, currentResults: SearchResults): Promise<SearchResults> {
   try {
-    const apiResults = await searchFood(query);
-    
-    // Combine database and API results
+    const results = await searchFood(query)
     return {
-      fromDb: false, // Switch to show total count
-      total: (apiResults.total || 0) + existingResults.products.length,
-      products: [
-        ...existingResults.products, // Keep database results
-        ...(apiResults.products || []) // Add API results
-      ]
-    };
+      fromDb: false,
+      total: results.total,
+      products: [...currentResults.products, ...results.products]
+    }
   } catch (error) {
-    console.error('Online search failed:', error);
-    throw new Error('Failed to fetch online results');
+    console.error('Online search error:', error)
+    throw new Error('Failed to fetch online results')
   }
 }
