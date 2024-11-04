@@ -1,11 +1,11 @@
-import { create } from 'zustand'
-import { User } from 'next-auth'
+import { create } from 'zustand';
+import { User } from 'next-auth';
 
 interface UserState {
-  user: User | null
-  isLoading: boolean
-  setUser: (user: User | null) => void
-  setLoading: (isLoading: boolean) => void
+  user: User | null;
+  isLoading: boolean;
+  setUser: (user: User | null) => void;
+  setLoading: (isLoading: boolean) => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -13,4 +13,4 @@ export const useUserStore = create<UserState>((set) => ({
   isLoading: true,
   setUser: (user) => set({ user }),
   setLoading: (isLoading) => set({ isLoading }),
-})) 
+}));

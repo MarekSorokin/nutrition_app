@@ -17,4 +17,4 @@ export const useAppStore = create<AppState>((set) => ({
   setDisplaySearchResults: (display: boolean) => set({ displaySearchResults: display }),
   setSearchResults: (results: SearchResultsType) => set({ searchResults: results }),
   setCurrentQuery: (query: string) => set({ currentQuery: query }),
-})); 
+}));

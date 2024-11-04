@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { FoodSearch } from "@/components/food-search";
-import { NutritionStats } from "@/components/nutrition-stats";
-import { DailyMeals } from "@/components/daily-meals";
+import { FoodSearch } from '@/components/food-search';
+import { NutritionStats } from '@/components/nutrition-stats';
+import { DailyMeals } from '@/components/daily-meals';
 
 export default function Home() {
   return (

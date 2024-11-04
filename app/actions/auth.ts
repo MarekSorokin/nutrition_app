@@ -1,33 +1,33 @@
-'use server'
+'use server';
 
-import { z } from "zod"
-import { hash } from "bcryptjs"
-import prisma from "@/lib/prisma"
-import { signIn } from "@/lib/auth"
+import { z } from 'zod';
+import { hash } from 'bcryptjs';
+import prisma from '@/lib/prisma';
+import { signIn } from '@/lib/auth';
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-})
+});
 
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-})
+});
 
 export async function register(data: z.infer<typeof registerSchema>) {
   try {
-    const { email, password } = registerSchema.parse(data)
+    const { email, password } = registerSchema.parse(data);
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
-    })
+    });
 
     if (existingUser) {
-      return { error: "User already exists" }
+      return { error: 'User already exists' };
     }
 
-    const hashedPassword = await hash(password, 12)
+    const hashedPassword = await hash(password, 12);
 
     const user = await prisma.user.create({
       data: {
@@ -39,36 +39,36 @@ export async function register(data: z.infer<typeof registerSchema>) {
         email: true,
         name: true,
       },
-    })
+    });
 
-    return { success: true, user }
+    return { success: true, user };
   } catch (error) {
-    console.error("Registration error:", error)
+    console.error('Registration error:', error);
     if (error instanceof z.ZodError) {
-      return { error: "Invalid input data" }
+      return { error: 'Invalid input data' };
     }
-    return { error: "Failed to register" }
+    return { error: 'Failed to register' };
   }
 }
 
 export async function login(data: z.infer<typeof loginSchema>) {
   try {
-    const validatedData = loginSchema.parse(data)
-    
-    const result = await signIn("credentials", {
+    const validatedData = loginSchema.parse(data);
+
+    const result = await signIn('credentials', {
       redirect: false,
       ...validatedData,
-    })
+    });
 
     if (result?.error) {
-      return { error: "Invalid credentials" }
+      return { error: 'Invalid credentials' };
     }
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { error: "Invalid input data" }
+      return { error: 'Invalid input data' };
     }
-    return { error: "Login failed" }
+    return { error: 'Login failed' };
   }
-} 
+}

@@ -52,4 +52,4 @@ export interface OpenFoodFactsResponse {
   count: number;
   page: number;
   products: OpenFoodFactsProduct[];
-} 
+}

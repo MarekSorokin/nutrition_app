@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import { Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useAppStore } from "@/lib/store/app-store";
-import { searchFood } from "@/app/actions";
-import { useState } from "react";
-import { SearchResults } from "./search-results";
+import { Search, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useAppStore } from '@/lib/store/app-store';
+import { searchFood } from '@/app/actions';
+import { useState } from 'react';
+import { SearchResults } from './search-results';
 
 export function FoodSearch() {
   const [isLoading, setIsLoading] = useState(false);
-  const { 
-    currentQuery, 
-    setCurrentQuery, 
-    searchResults, 
-    setSearchResults, 
+  const {
+    currentQuery,
+    setCurrentQuery,
+    searchResults,
+    setSearchResults,
     displaySearchResults,
-    setDisplaySearchResults 
+    setDisplaySearchResults,
   } = useAppStore();
 
   const handleSearch = async () => {
     if (!currentQuery.trim()) return;
-    
+
     try {
       setIsLoading(true);
       const results = await searchFood(currentQuery);
@@ -63,8 +63,8 @@ export function FoodSearch() {
             </Button>
           )}
         </div>
-        <Button 
-          onClick={handleSearch} 
+        <Button
+          onClick={handleSearch}
           disabled={isLoading || !currentQuery.trim()}
           className="gap-2"
         >
@@ -73,9 +73,7 @@ export function FoodSearch() {
         </Button>
       </div>
 
-      {displaySearchResults && searchResults && (
-        <SearchResults results={searchResults} />
-      )}
+      {displaySearchResults && searchResults && <SearchResults results={searchResults} />}
     </div>
   );
-} 
+}

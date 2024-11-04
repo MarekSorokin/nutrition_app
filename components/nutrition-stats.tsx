@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react'
-import { getDailyNutrition, type DailyNutrition } from '@/app/actions/nutrition'
-import { useUserStore } from '@/lib/store/user-store'
+import { useEffect, useState } from 'react';
+import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react';
+import { getDailyNutrition, type DailyNutrition } from '@/app/actions/nutrition';
+import { useUserStore } from '@/lib/store/user-store';
 
 const DAILY_GOALS = {
   calories: 2500,
   proteins: 150,
   carbs: 300,
   fats: 65,
-}
+};
 
 export function NutritionStats() {
   const [nutrition, setNutrition] = useState<DailyNutrition>({
@@ -18,29 +18,29 @@ export function NutritionStats() {
     proteins: 0,
     carbs: 0,
     fats: 0,
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const user = useUserStore((state) => state.user)
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const user = useUserStore((state) => state.user);
 
   useEffect(() => {
     async function fetchNutrition() {
-      if (!user?.id) return
-      
+      if (!user?.id) return;
+
       try {
-        const data = await getDailyNutrition(user.id)
-        setNutrition(data)
+        const data = await getDailyNutrition(user.id);
+        setNutrition(data);
       } catch (error) {
-        console.error('Failed to fetch nutrition:', error)
+        console.error('Failed to fetch nutrition:', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchNutrition()
-  }, [user?.id])
+    fetchNutrition();
+  }, [user?.id]);
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   const stats = [
@@ -73,14 +73,14 @@ export function NutritionStats() {
       textColor: 'text-chart-4',
       unit: '',
     },
-  ]
+  ];
 
   return (
     <div className="grid md:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-4 w-full">
       {stats.map((stat) => {
-        const percentage = (stat.value / stat.goal) * 100
-        const isUp = percentage > 0
-        
+        const percentage = (stat.value / stat.goal) * 100;
+        const isUp = percentage > 0;
+
         return (
           <div
             key={stat.name}
@@ -97,15 +97,17 @@ export function NutritionStats() {
               </span>
             </div>
             <span className={`text-3xl font-bold ${stat.textColor}`}>
-              {stat.value}{stat.unit ?? 'g'}
+              {stat.value}
+              {stat.unit ?? 'g'}
             </span>
             <span className="text-sm text-muted-foreground">
-              / {stat.goal}{stat.unit ?? 'g'}
+              / {stat.goal}
+              {stat.unit ?? 'g'}
             </span>
             <span className="text-sm font-medium mt-2">{stat.name}</span>
           </div>
-        )
+        );
       })}
     </div>
-  )
-} 
+  );
+}

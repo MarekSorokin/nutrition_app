@@ -1,12 +1,12 @@
-import Image from "next/image";
-import { Flame, Beef, Wheat, Cookie, Flag, Search, PlusIcon } from "lucide-react";
-import { searchOnline } from "@/app/actions";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useState } from "react";
-import type { Product, SearchResults as SearchResultsType } from "@/types/food";
-import { AddFoodModal } from "./add-food-modal";
-import { useAppStore } from "@/lib/store/app-store";
+import Image from 'next/image';
+import { Flame, Beef, Wheat, Cookie, Flag, Search, PlusIcon } from 'lucide-react';
+import { searchOnline } from '@/app/actions';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useState } from 'react';
+import type { Product, SearchResults as SearchResultsType } from '@/types/food';
+import { AddFoodModal } from './add-food-modal';
+import { useAppStore } from '@/lib/store/app-store';
 
 interface SearchResultsProps {
   results: SearchResultsType;
@@ -31,17 +31,17 @@ export function SearchResults({ results }: SearchResultsProps) {
     } finally {
       setIsSearchingOnline(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
-      <SearchHeader 
+      <SearchHeader
         fromDb={results.fromDb}
         total={results.total}
         showOnlineSearch={results.fromDb && !isSearchingOnline}
         onSearchOnline={handleSearchOnline}
       />
-      <ProductList 
+      <ProductList
         products={results.products}
         onAddToMeal={(product) => setSelectedFood(product)}
       />
@@ -77,12 +77,7 @@ function SearchHeader({ fromDb, total, showOnlineSearch, onSearchOnline }: Searc
         </p>
       </div>
       {showOnlineSearch && (
-        <Button 
-          size="sm" 
-          variant="outline"
-          onClick={onSearchOnline}
-          className="gap-2"
-        >
+        <Button size="sm" variant="outline" onClick={onSearchOnline} className="gap-2">
           <Search className="size-4" />
           Search Online
         </Button>
@@ -100,11 +95,7 @@ function ProductList({ products, onAddToMeal }: ProductListProps) {
   return (
     <div className="grid gap-3">
       {products.map((product, i) => (
-        <ProductCard 
-          key={`${product.name}-${i}`}
-          product={product}
-          onAddToMeal={onAddToMeal}
-        />
+        <ProductCard key={`${product.name}-${i}`} product={product} onAddToMeal={onAddToMeal} />
       ))}
     </div>
   );
@@ -120,7 +111,7 @@ function ProductCard({ product, onAddToMeal }: ProductCardProps) {
     <div className="flex gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
       <ProductImage src={product.image} alt={product.name} />
       <ProductInfo product={product} />
-      <Button 
+      <Button
         size="icon"
         variant="ghost"
         onClick={() => onAddToMeal(product)}
@@ -145,9 +136,9 @@ function ProductImage({ src, alt }: { src?: string; alt: string }) {
           className="object-cover rounded-md"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = "";
+            target.src = '';
             target.onerror = null;
-            target.parentElement?.classList.add("fallback-image");
+            target.parentElement?.classList.add('fallback-image');
           }}
         />
       ) : (
@@ -171,20 +162,20 @@ function ProductInfo({ product }: { product: Product }) {
         )}
       </div>
       <p className="text-sm text-muted-foreground truncate">{product.brand}</p>
-      
+
       <div className="flex gap-3 mt-1 text-sm">
-        <NutritionInfo 
+        <NutritionInfo
           icon={<Flame className="size-3.5" />}
           value={Math.round(product.nutritionPer100g.calories)}
           title="Calories"
         />
-        <NutritionInfo 
+        <NutritionInfo
           icon={<Beef className="size-3.5" />}
           value={product.nutritionPer100g.proteins.toFixed(1)}
           unit="g"
           title="Protein"
         />
-        <NutritionInfo 
+        <NutritionInfo
           icon={<Wheat className="size-3.5" />}
           value={product.nutritionPer100g.carbs.toFixed(1)}
           unit="g"
@@ -206,7 +197,10 @@ function NutritionInfo({ icon, value, unit = '', title }: NutritionInfoProps) {
   return (
     <div className="flex items-center gap-1" title={title}>
       {icon}
-      <span>{value}{unit}</span>
+      <span>
+        {value}
+        {unit}
+      </span>
     </div>
   );
-} 
+}

@@ -1,22 +1,22 @@
-'use server'
+'use server';
 
-import { auth } from "@/lib/auth"
-import prisma from "@/lib/prisma"
-import { SaveFoodInput } from "@/types/food"
-import { MealType } from "@prisma/client"
-import { revalidatePath } from "next/cache"
-import { startOfDay, endOfDay } from 'date-fns'
+import { auth } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { SaveFoodInput } from '@/types/food';
+import { MealType } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
+import { startOfDay, endOfDay } from 'date-fns';
 
 interface AddFoodToMealInput extends SaveFoodInput {
-  amount: number
-  mealType: MealType
+  amount: number;
+  mealType: MealType;
 }
 
 export async function addFoodToMeal(data: AddFoodToMealInput) {
   try {
-    const session = await auth()
+    const session = await auth();
     if (!session?.user?.id) {
-      return { error: "Not authenticated" }
+      return { error: 'Not authenticated' };
     }
 
     let food = await prisma.food.findFirst({
@@ -24,7 +24,7 @@ export async function addFoodToMeal(data: AddFoodToMealInput) {
         name: data.name,
         brand: data.brand || null,
       },
-    })
+    });
 
     if (!food) {
       food = await prisma.food.create({
@@ -37,11 +37,11 @@ export async function addFoodToMeal(data: AddFoodToMealInput) {
           carbs: data.carbs,
           fats: data.fats,
         },
-      })
+      });
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     let meal = await prisma.meal.findFirst({
       where: {
@@ -50,7 +50,7 @@ export async function addFoodToMeal(data: AddFoodToMealInput) {
         date: today,
         deletedAt: null,
       },
-    })
+    });
 
     if (!meal) {
       meal = await prisma.meal.create({
@@ -60,7 +60,7 @@ export async function addFoodToMeal(data: AddFoodToMealInput) {
           date: today,
           name: data.mealType.toLowerCase(),
         },
-      })
+      });
     }
 
     await prisma.mealFood.create({
@@ -69,20 +69,20 @@ export async function addFoodToMeal(data: AddFoodToMealInput) {
         foodId: food.id,
         amount: data.amount,
       },
-    })
+    });
 
-    revalidatePath('/')
-    return { success: true }
+    revalidatePath('/');
+    return { success: true };
   } catch (error) {
-    console.error('Failed to add food to meal:', error)
-    return { error: 'Failed to add food to meal' }
+    console.error('Failed to add food to meal:', error);
+    return { error: 'Failed to add food to meal' };
   }
 }
 
 export async function getDailyMeals(userId: string) {
   try {
-    const today = new Date()
-    
+    const today = new Date();
+
     const meals = await prisma.meal.findMany({
       where: {
         userId,
@@ -102,11 +102,11 @@ export async function getDailyMeals(userId: string) {
       orderBy: {
         type: 'asc',
       },
-    })
+    });
 
-    return { success: true, meals }
+    return { success: true, meals };
   } catch (error) {
-    console.error('Failed to get daily meals:', error)
-    return { error: 'Failed to fetch meals' }
+    console.error('Failed to get daily meals:', error);
+    return { error: 'Failed to fetch meals' };
   }
-} 
+}

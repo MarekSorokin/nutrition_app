@@ -1,9 +1,15 @@
-'use server'
+'use server';
 
-import { revalidatePath } from "next/cache"
-import prisma from "@/lib/prisma"
-import { z } from "zod"
-import { OpenFoodFactsProduct, OpenFoodFactsResponse, Product, SaveFoodInput, SearchResults } from "@/types/food"
+import { revalidatePath } from 'next/cache';
+import prisma from '@/lib/prisma';
+import { z } from 'zod';
+import {
+  OpenFoodFactsProduct,
+  OpenFoodFactsResponse,
+  Product,
+  SaveFoodInput,
+  SearchResults,
+} from '@/types/food';
 
 // Validation schemas
 const foodSchema = z.object({
@@ -14,10 +20,13 @@ const foodSchema = z.object({
   proteins: z.number().min(0),
   carbs: z.number().min(0),
   fats: z.number().min(0),
-})
+});
 
 // Helper functions
-const transformOpenFoodFactsProduct = (product: OpenFoodFactsProduct, isCzech = false): Product => ({
+const transformOpenFoodFactsProduct = (
+  product: OpenFoodFactsProduct,
+  isCzech = false,
+): Product => ({
   name: product.product_name,
   image: product.image_url,
   nutritionPer100g: {
@@ -30,10 +39,13 @@ const transformOpenFoodFactsProduct = (product: OpenFoodFactsProduct, isCzech = 
   brand: product.brands,
   isCzech,
   canBeSaved: true,
-})
+});
 
 // API functions
-async function fetchOpenFoodFactsProducts(query: string, isOnlyCzech = false): Promise<OpenFoodFactsResponse> {
+async function fetchOpenFoodFactsProducts(
+  query: string,
+  isOnlyCzech = false,
+): Promise<OpenFoodFactsResponse> {
   const params = new URLSearchParams({
     search_terms: query,
     search_simple: '1',
@@ -41,111 +53,111 @@ async function fetchOpenFoodFactsProducts(query: string, isOnlyCzech = false): P
     json: '1',
     page_size: '5',
     fields: 'product_name,image_url,nutriments,nutrition_grades,brands,quantity,countries_tags',
-  })
+  });
 
   if (isOnlyCzech) {
-    params.append('tagtype_0', 'countries')
-    params.append('tag_contains_0', 'contains')
-    params.append('tag_0', 'czech-republic')
-    params.append('sort_by', 'popularity_key')
+    params.append('tagtype_0', 'countries');
+    params.append('tag_contains_0', 'contains');
+    params.append('tag_0', 'czech-republic');
+    params.append('sort_by', 'popularity_key');
   }
 
-  const response = await fetch(
-    `https://world.openfoodfacts.org/cgi/search.pl?${params}`
-  )
+  const response = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?${params}`);
 
   if (!response.ok) {
-    throw new Error('Failed to fetch from Open Food Facts')
+    throw new Error('Failed to fetch from Open Food Facts');
   }
 
-  return response.json()
+  return response.json();
 }
 
 // Main functions
 export async function getFoodFromDb(name: string) {
-  if (!name?.trim()) return null
+  if (!name?.trim()) return null;
 
   try {
     return await prisma.food.findFirst({
       where: {
         OR: [
           { name: { contains: name.trim(), mode: 'insensitive' } },
-          { brand: { contains: name.trim(), mode: 'insensitive' } }
-        ]
+          { brand: { contains: name.trim(), mode: 'insensitive' } },
+        ],
       },
-    })
+    });
   } catch (error) {
-    console.error('Database search error:', error)
-    return null
+    console.error('Database search error:', error);
+    return null;
   }
 }
 
 export async function saveFood(data: SaveFoodInput) {
   try {
-    const validatedData = foodSchema.parse(data)
-    
-    const food = await prisma.food.create({
-      data: validatedData
-    })
+    const validatedData = foodSchema.parse(data);
 
-    revalidatePath('/')
-    return { success: true, food }
+    const food = await prisma.food.create({
+      data: validatedData,
+    });
+
+    revalidatePath('/');
+    return { success: true, food };
   } catch (error) {
-    console.error('Failed to save food:', error)
+    console.error('Failed to save food:', error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: 'Invalid food data' }
+      return { success: false, error: 'Invalid food data' };
     }
-    return { success: false, error: 'Failed to save food' }
+    return { success: false, error: 'Failed to save food' };
   }
 }
 
 export async function searchFood(query: string): Promise<SearchResults> {
   if (!query?.trim()) {
-    return { fromDb: false, products: [] }
+    return { fromDb: false, products: [] };
   }
 
   // First check in database
-  const dbFood = await getFoodFromDb(query)
+  const dbFood = await getFoodFromDb(query);
   if (dbFood) {
     return {
       fromDb: true,
-      products: [{
-        name: dbFood.name,
-        image: dbFood.image || undefined,
-        nutritionPer100g: {
-          calories: dbFood.calories,
-          proteins: dbFood.proteins,
-          carbs: dbFood.carbs,
-          fats: dbFood.fats,
+      products: [
+        {
+          name: dbFood.name,
+          image: dbFood.image || undefined,
+          nutritionPer100g: {
+            calories: dbFood.calories,
+            proteins: dbFood.proteins,
+            carbs: dbFood.carbs,
+            fats: dbFood.fats,
+          },
+          brand: dbFood.brand || undefined,
+          canBeSaved: false,
         },
-        brand: dbFood.brand || undefined,
-        canBeSaved: false,
-      }]
-    }
+      ],
+    };
   }
 
-  return { fromDb: false, products: [] }
+  return { fromDb: false, products: [] };
 }
 
 export async function searchOnline(query: string): Promise<SearchResults> {
   try {
-      const [czechData, worldData] = await Promise.all([
-        fetchOpenFoodFactsProducts(query, true),
-        fetchOpenFoodFactsProducts(query),
-      ])
-  
-      const czechProducts = czechData.products.map(p => transformOpenFoodFactsProduct(p, true))
-      const worldProducts = worldData.products
-        .filter(wp => !czechData.products.some(cp => cp.product_name === wp.product_name))
-        .map(p => transformOpenFoodFactsProduct(p, false))
-  
-      return {
-        fromDb: false,
-        total: czechData.count + worldData.count,
-        products: [...czechProducts, ...worldProducts]
-    }
+    const [czechData, worldData] = await Promise.all([
+      fetchOpenFoodFactsProducts(query, true),
+      fetchOpenFoodFactsProducts(query),
+    ]);
+
+    const czechProducts = czechData.products.map((p) => transformOpenFoodFactsProduct(p, true));
+    const worldProducts = worldData.products
+      .filter((wp) => !czechData.products.some((cp) => cp.product_name === wp.product_name))
+      .map((p) => transformOpenFoodFactsProduct(p, false));
+
+    return {
+      fromDb: false,
+      total: czechData.count + worldData.count,
+      products: [...czechProducts, ...worldProducts],
+    };
   } catch (error) {
-    console.error('Search error:', error)
-    return { fromDb: false, products: [] }
+    console.error('Search error:', error);
+    return { fromDb: false, products: [] };
   }
 }

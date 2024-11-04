@@ -1,40 +1,40 @@
-'use client'
+'use client';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Product } from "@/types/food"
-import { MealType } from "@prisma/client"
-import { addFoodToMeal } from "@/app/actions/meals"
-import { toast } from "sonner"
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Product } from '@/types/food';
+import { MealType } from '@prisma/client';
+import { addFoodToMeal } from '@/app/actions/meals';
+import { toast } from 'sonner';
 
 interface AddFoodModalProps {
-  food: Product
-  isOpen: boolean
-  onClose: () => void
+  food: Product;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export function AddFoodModal({ food, isOpen, onClose }: AddFoodModalProps) {
-  const [amount, setAmount] = useState("100")
-  const [mealType, setMealType] = useState<MealType>(MealType.SNACK)
-  const [isSaving, setIsSaving] = useState(false)
+  const [amount, setAmount] = useState('100');
+  const [mealType, setMealType] = useState<MealType>(MealType.SNACK);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       const result = await addFoodToMeal({
         name: food.name,
@@ -46,22 +46,22 @@ export function AddFoodModal({ food, isOpen, onClose }: AddFoodModalProps) {
         fats: food.nutritionPer100g.fats,
         amount: Number(amount),
         mealType,
-      })
+      });
 
       if (result.error) {
-        toast.error(result.error)
-        return
+        toast.error(result.error);
+        return;
       }
 
-      toast.success("Food added to meal!")
-      onClose()
+      toast.success('Food added to meal!');
+      onClose();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error("Failed to add food to meal", { description: errorMessage });
+      toast.error('Failed to add food to meal', { description: errorMessage });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -98,24 +98,28 @@ export function AddFoodModal({ food, isOpen, onClose }: AddFoodModalProps) {
           <div className="space-y-1">
             <h4 className="text-sm font-medium">Nutrition per {amount}g</h4>
             <div className="text-sm text-muted-foreground">
-              <p>Calories: {Math.round(food.nutritionPer100g.calories * Number(amount) / 100)}</p>
-              <p>Protein: {(food.nutritionPer100g.proteins * Number(amount) / 100).toFixed(1)}g</p>
-              <p>Carbs: {(food.nutritionPer100g.carbs * Number(amount) / 100).toFixed(1)}g</p>
-              <p>Fat: {(food.nutritionPer100g.fats * Number(amount) / 100).toFixed(1)}g</p>
+              <p>Calories: {Math.round((food.nutritionPer100g.calories * Number(amount)) / 100)}</p>
+              <p>
+                Protein: {((food.nutritionPer100g.proteins * Number(amount)) / 100).toFixed(1)}g
+              </p>
+              <p>Carbs: {((food.nutritionPer100g.carbs * Number(amount)) / 100).toFixed(1)}g</p>
+              <p>Fat: {((food.nutritionPer100g.fats * Number(amount)) / 100).toFixed(1)}g</p>
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={handleSubmit} disabled={isSaving}>
             {isSaving ? (
               <div className="size-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
             ) : (
-              "Add to meal"
+              'Add to meal'
             )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-} 
+  );
+}
