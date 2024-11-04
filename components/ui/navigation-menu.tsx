@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
 import * as NavigationMenuPrimitive from '@radix-ui/react-navigation-menu';
 import { cva } from 'class-variance-authority';
+import PropTypes from 'prop-types';
 
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,10 @@ const NavigationMenu = React.forwardRef<
 ));
 NavigationMenu.displayName = NavigationMenuPrimitive.Root.displayName;
 
+NavigationMenu.propTypes = {
+  className: PropTypes.string,
+};
+
 const NavigationMenuList = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.List>
@@ -31,6 +36,10 @@ const NavigationMenuList = React.forwardRef<
   />
 ));
 NavigationMenuList.displayName = NavigationMenuPrimitive.List.displayName;
+
+NavigationMenuList.propTypes = {
+  className: PropTypes.string,
+};
 
 const NavigationMenuItem = NavigationMenuPrimitive.Item;
 
@@ -56,6 +65,10 @@ const NavigationMenuTrigger = React.forwardRef<
 ));
 NavigationMenuTrigger.displayName = NavigationMenuPrimitive.Trigger.displayName;
 
+NavigationMenuTrigger.propTypes = {
+  className: PropTypes.string,
+};
+
 const NavigationMenuContent = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content>
@@ -70,6 +83,10 @@ const NavigationMenuContent = React.forwardRef<
   />
 ));
 NavigationMenuContent.displayName = NavigationMenuPrimitive.Content.displayName;
+
+NavigationMenuContent.propTypes = {
+  className: PropTypes.string,
+};
 
 const NavigationMenuLink = NavigationMenuPrimitive.Link;
 
@@ -90,6 +107,10 @@ const NavigationMenuViewport = React.forwardRef<
 ));
 NavigationMenuViewport.displayName = NavigationMenuPrimitive.Viewport.displayName;
 
+NavigationMenuViewport.propTypes = {
+  className: PropTypes.string,
+};
+
 const NavigationMenuIndicator = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Indicator>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Indicator>
@@ -106,6 +127,10 @@ const NavigationMenuIndicator = React.forwardRef<
   </NavigationMenuPrimitive.Indicator>
 ));
 NavigationMenuIndicator.displayName = NavigationMenuPrimitive.Indicator.displayName;
+
+NavigationMenuIndicator.propTypes = {
+  className: PropTypes.string,
+};
 
 export {
   navigationMenuTriggerStyle,
