@@ -1,20 +1,21 @@
 import Image from "next/image";
-import { Flame, Beef, Wheat, Cookie, Flag, Search } from "lucide-react";
+import { Flame, Beef, Wheat, Cookie, Flag, Search, PlusIcon, X } from "lucide-react";
 import { saveFood, searchOnline } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { Product, SearchResults as SearchResultsType } from "@/types/food";
+import { AddFoodModal } from "./add-food-modal";
+import { useAppStore } from "@/lib/store/app-store";
 
 interface SearchResultsProps {
   results: SearchResultsType;
-  query: string;
 }
 
-export function SearchResults({ results, query }: SearchResultsProps) {
+export function SearchResults({ results }: SearchResultsProps) {
   const [isSearchingOnline, setIsSearchingOnline] = useState(false);
-  const [combinedResults, setCombinedResults] = useState(results);
-
+  const [selectedFood, setSelectedFood] = useState<Product | null>(null);
+  const { setDisplaySearchResults, setSearchResults, currentQuery } = useAppStore();
   if (!results.products.length) {
     return <div className="text-center text-muted-foreground">No products found</div>;
   }
@@ -45,8 +46,8 @@ export function SearchResults({ results, query }: SearchResultsProps) {
   const handleSearchOnline = async () => {
     try {
       setIsSearchingOnline(true);
-      const newResults = await searchOnline(query, results);
-      setCombinedResults(newResults);
+      const newResults = await searchOnline(currentQuery, results);
+      setSearchResults(newResults);
     } catch (error) {
       toast.error('Failed to fetch online results');
     } finally {
@@ -57,15 +58,26 @@ export function SearchResults({ results, query }: SearchResultsProps) {
   return (
     <div className="space-y-4">
       <SearchHeader 
-        fromDb={combinedResults.fromDb}
-        total={combinedResults.total}
+        fromDb={results.fromDb}
+        total={results.total}
         showOnlineSearch={results.fromDb && !isSearchingOnline}
         onSearchOnline={handleSearchOnline}
       />
       <ProductList 
-        products={combinedResults.products}
-        onSave={handleSaveFood}
+        products={results.products}
+        onAddToMeal={(product) => setSelectedFood(product)}
       />
+
+      {selectedFood && (
+        <AddFoodModal
+          food={selectedFood}
+          isOpen={true}
+          onClose={() => {
+            setSelectedFood(null);
+            setDisplaySearchResults(false);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -81,9 +93,11 @@ interface SearchHeaderProps {
 function SearchHeader({ fromDb, total, showOnlineSearch, onSearchOnline }: SearchHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <p className="text-sm text-muted-foreground">
-        {fromDb ? 'Found in your database' : `Found ${total} products`}
-      </p>
+      <div className="flex items-center gap-2">
+        <p className="text-sm text-muted-foreground">
+          {fromDb ? 'Found in your database' : `Found ${total} products`}
+        </p>
+      </div>
       {showOnlineSearch && (
         <Button 
           size="sm" 
@@ -101,17 +115,17 @@ function SearchHeader({ fromDb, total, showOnlineSearch, onSearchOnline }: Searc
 
 interface ProductListProps {
   products: Product[];
-  onSave: (product: Product) => void;
+  onAddToMeal: (product: Product) => void;
 }
 
-function ProductList({ products, onSave }: ProductListProps) {
+function ProductList({ products, onAddToMeal }: ProductListProps) {
   return (
     <div className="grid gap-3">
       {products.map((product, i) => (
         <ProductCard 
           key={`${product.name}-${i}`}
           product={product}
-          onSave={onSave}
+          onAddToMeal={onAddToMeal}
         />
       ))}
     </div>
@@ -120,23 +134,23 @@ function ProductList({ products, onSave }: ProductListProps) {
 
 interface ProductCardProps {
   product: Product;
-  onSave: (product: Product) => void;
+  onAddToMeal: (product: Product) => void;
 }
 
-function ProductCard({ product, onSave }: ProductCardProps) {
+function ProductCard({ product, onAddToMeal }: ProductCardProps) {
   return (
     <div className="flex gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
       <ProductImage src={product.image} alt={product.name} />
       <ProductInfo product={product} />
-      {product.canBeSaved && (
-        <Button 
-          size="sm" 
-          onClick={() => onSave(product)}
-          className="ml-auto"
-        >
-          Save
-        </Button>
-      )}
+      <Button 
+        size="icon"
+        variant="ghost"
+        onClick={() => onAddToMeal(product)}
+        className="ml-auto"
+        title="Add to meal"
+      >
+        <PlusIcon className="size-4" />
+      </Button>
     </div>
   );
 }

@@ -7,41 +7,78 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
 model Food {
-  id              String   @id @default(cuid())
-  name            String
-  brand           String?
-  image           String?
+  id              String     @id @default(cuid())
+  name            String     @db.VarChar(255)
+  brand           String?    @db.VarChar(255)
+  image           String?    @db.Text
   calories        Float
   proteins        Float
   carbs           Float
   fats            Float
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  deletedAt       DateTime?
   mealFoods       MealFood[]
+
+  @@index([name])
+  @@index([brand])
+  @@index([deletedAt])
 }
 
 model Meal {
-  id        String     @id @default(cuid())
-  name      String
-  date      DateTime
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  foods     MealFood[]
+  id          String     @id @default(cuid())
+  name        String     @db.VarChar(255)
+  type        MealType
+  date        DateTime
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  foods       MealFood[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
 
+  @@index([type])
   @@index([date])
+  @@index([userId])
+  @@index([deletedAt])
+  @@index([userId, date, type])
 }
 
 model MealFood {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   mealId    String
   foodId    String
-  amount    Float    // in grams
-  meal      Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
-  food      Food     @relation(fields: [foodId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  amount    Float     // in grams
+  meal      Meal      @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  food      Food      @relation(fields: [foodId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([mealId])
   @@index([foodId])
+  @@index([deletedAt])
+  @@index([mealId, foodId])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique @db.VarChar(255)
+  password      String
+  name          String?   @db.VarChar(255)
+  meals         Meal[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@index([email])
+  @@index([deletedAt])
 } 

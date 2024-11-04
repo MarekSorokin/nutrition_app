@@ -124,35 +124,30 @@ export async function searchFood(query: string): Promise<SearchResults> {
     }
   }
 
-  try {
-    const [czechData, worldData] = await Promise.all([
-      fetchOpenFoodFactsProducts(query, true),
-      fetchOpenFoodFactsProducts(query),
-    ])
-
-    const czechProducts = czechData.products.map(p => transformOpenFoodFactsProduct(p, true))
-    const worldProducts = worldData.products
-      .filter(wp => !czechData.products.some(cp => cp.product_name === wp.product_name))
-      .map(p => transformOpenFoodFactsProduct(p, false))
-
-    return {
-      fromDb: false,
-      total: czechData.count + worldData.count,
-      products: [...czechProducts, ...worldProducts]
-    }
-  } catch (error) {
-    console.error('Search error:', error)
-    return { fromDb: false, products: [] }
-  }
+  return { fromDb: false, products: [] }
 }
 
 export async function searchOnline(query: string, currentResults: SearchResults): Promise<SearchResults> {
   try {
-    const results = await searchFood(query)
-    return {
-      fromDb: false,
-      total: results.total,
-      products: [...currentResults.products, ...results.products]
+    try {
+      const [czechData, worldData] = await Promise.all([
+        fetchOpenFoodFactsProducts(query, true),
+        fetchOpenFoodFactsProducts(query),
+      ])
+  
+      const czechProducts = czechData.products.map(p => transformOpenFoodFactsProduct(p, true))
+      const worldProducts = worldData.products
+        .filter(wp => !czechData.products.some(cp => cp.product_name === wp.product_name))
+        .map(p => transformOpenFoodFactsProduct(p, false))
+  
+      return {
+        fromDb: false,
+        total: czechData.count + worldData.count,
+        products: [...czechProducts, ...worldProducts]
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      return { fromDb: false, products: [] }
     }
   } catch (error) {
     console.error('Online search error:', error)
