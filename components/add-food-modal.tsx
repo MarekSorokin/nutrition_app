@@ -56,7 +56,8 @@ export function AddFoodModal({ food, isOpen, onClose }: AddFoodModalProps) {
       toast.success("Food added to meal!")
       onClose()
     } catch (error) {
-      toast.error("Failed to add food to meal")
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error("Failed to add food to meal", { description: errorMessage });
     } finally {
       setIsSaving(false)
     }

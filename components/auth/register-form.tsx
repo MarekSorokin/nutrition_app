@@ -29,7 +29,8 @@ export function RegisterForm() {
       toast.success("Account created successfully!")
       router.push("/login")
     } catch (error) {
-      toast.error("Something went wrong. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error("Something went wrong. Please try again.", { description: errorMessage });
     } finally {
       setIsPending(false)
     }

@@ -127,9 +127,8 @@ export async function searchFood(query: string): Promise<SearchResults> {
   return { fromDb: false, products: [] }
 }
 
-export async function searchOnline(query: string, currentResults: SearchResults): Promise<SearchResults> {
+export async function searchOnline(query: string): Promise<SearchResults> {
   try {
-    try {
       const [czechData, worldData] = await Promise.all([
         fetchOpenFoodFactsProducts(query, true),
         fetchOpenFoodFactsProducts(query),
@@ -144,13 +143,9 @@ export async function searchOnline(query: string, currentResults: SearchResults)
         fromDb: false,
         total: czechData.count + worldData.count,
         products: [...czechProducts, ...worldProducts]
-      }
-    } catch (error) {
-      console.error('Search error:', error)
-      return { fromDb: false, products: [] }
     }
   } catch (error) {
-    console.error('Online search error:', error)
-    throw new Error('Failed to fetch online results')
+    console.error('Search error:', error)
+    return { fromDb: false, products: [] }
   }
 }

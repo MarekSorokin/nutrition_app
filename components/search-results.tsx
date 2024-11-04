@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { Flame, Beef, Wheat, Cookie, Flag, Search, PlusIcon, X } from "lucide-react";
-import { saveFood, searchOnline } from "@/app/actions";
+import { Flame, Beef, Wheat, Cookie, Flag, Search, PlusIcon } from "lucide-react";
+import { searchOnline } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -20,36 +20,14 @@ export function SearchResults({ results }: SearchResultsProps) {
     return <div className="text-center text-muted-foreground">No products found</div>;
   }
 
-  const handleSaveFood = async (product: Product) => {
-    try {
-      const result = await saveFood({
-        name: product.name,
-        brand: product.brand,
-        image: product.image,
-        calories: product.nutritionPer100g.calories,
-        proteins: product.nutritionPer100g.proteins,
-        carbs: product.nutritionPer100g.carbs,
-        fats: product.nutritionPer100g.fats,
-      })
-
-      if (result.success) {
-        toast.success('Food saved successfully!')
-      } else {
-        toast.error(result.error || 'Failed to save food')
-      }
-    } catch (error) {
-      console.error('Save error:', error)
-      toast.error('Failed to save food')
-    }
-  }
-
   const handleSearchOnline = async () => {
     try {
       setIsSearchingOnline(true);
-      const newResults = await searchOnline(currentQuery, results);
+      const newResults = await searchOnline(currentQuery);
       setSearchResults(newResults);
     } catch (error) {
-      toast.error('Failed to fetch online results');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error('Failed to fetch online results', { description: errorMessage });
     } finally {
       setIsSearchingOnline(false);
     }

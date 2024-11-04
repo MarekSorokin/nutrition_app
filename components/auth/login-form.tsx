@@ -43,7 +43,8 @@ export function LoginForm() {
         toast.success('Logged in successfully')
       }
     } catch (error) {
-      toast.error('Something went wrong')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error('Something went wrong', { description: errorMessage });
     } finally {
       setIsLoading(false)
     }
@@ -79,7 +80,7 @@ export function LoginForm() {
         )}
       </Button>
       <div className="text-center text-sm">
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <Link href="/register" className="text-primary hover:underline">
           Sign up
         </Link>

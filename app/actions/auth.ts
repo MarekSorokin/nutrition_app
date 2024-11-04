@@ -53,9 +53,11 @@ export async function register(data: z.infer<typeof registerSchema>) {
 
 export async function login(data: z.infer<typeof loginSchema>) {
   try {
+    const validatedData = loginSchema.parse(data)
+    
     const result = await signIn("credentials", {
       redirect: false,
-      ...data,
+      ...validatedData,
     })
 
     if (result?.error) {
@@ -64,6 +66,9 @@ export async function login(data: z.infer<typeof loginSchema>) {
 
     return { success: true }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: "Invalid input data" }
+    }
     return { error: "Login failed" }
   }
 } 

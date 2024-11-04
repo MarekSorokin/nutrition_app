@@ -67,7 +67,7 @@ export function DailyMeals() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Today's Meals</h2>
+      <h2 className="text-xl font-semibold">Today&apos;s Meals</h2>
       <div className="space-y-6">
         {Object.values(MealType).map((type) => {
           const mealOfType = meals.find((meal) => meal.type === type)
