@@ -6,7 +6,6 @@ import { SaveFoodInput } from '@/types/food';
 import { MealType } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { startOfDay, endOfDay } from 'date-fns';
-import { useUserStore } from '@/lib/store/user-store';
 
 interface AddFoodToMealInput extends SaveFoodInput {
   amount: number;
