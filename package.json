@@ -29,7 +29,6 @@
     "next-auth": "5.0.0-beta.25",
     "next-themes": "^0.3.0",
     "prisma": "^5.22.0",
-    "prop-types": "^15.8.1",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
     "sonner": "^1.7.0",
@@ -41,6 +40,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.17.6",
+    "@types/prop-types": "^15.7.13",
     "@types/react": "npm:types-react@19.0.0-rc.1",
     "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1",
     "eslint": "^8.57.1",
