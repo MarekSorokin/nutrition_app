@@ -3,7 +3,6 @@ import { deleteFoodFromMeal, getDailyMeals } from '@/app/actions/meals';
 import type { Meal, MealFood } from '@prisma/client';
 import { toast } from 'sonner';
 import { useUserStore } from './user-store';
-import { getDailyNutrition } from '@/app/actions/nutrition';
 
 type MealWithFoods = Meal & {
   foods: (MealFood & {
@@ -63,13 +62,6 @@ export const useMealsStore = create<MealsState>((set, get) => ({
       toast.error('Failed to delete meal' + error);
     } finally {
       set({ isLoading: false });
-    }
-  },
-  recalculateNutrition: async () => {
-    const userId = useUserStore.getState().user?.id;
-    if (userId) {
-      const nutrition = await getDailyNutrition(userId);
-      set({ nutrition });
     }
   },
 }));

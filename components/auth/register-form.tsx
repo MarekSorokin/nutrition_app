@@ -12,10 +12,12 @@ export function RegisterForm() {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setIsPending(true);
 
     try {
+      const formData = new FormData(event.currentTarget);
       const result = await register({
         email: formData.get('email') as string,
         password: formData.get('password') as string,
@@ -37,7 +39,7 @@ export function RegisterForm() {
   }
 
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Input name="name" placeholder="Full name" required disabled={isPending} />
         <Input
