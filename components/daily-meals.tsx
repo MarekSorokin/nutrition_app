@@ -1,26 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getDailyMeals } from '@/app/actions/meals';
+import { useEffect } from 'react';
 import { useUserStore } from '@/lib/store/user-store';
-import { Meal, MealFood, MealType } from '@prisma/client';
-import { Beef, Cookie, Flame, Wheat } from 'lucide-react';
+import { useMealsStore } from '@/lib/store/meals-store';
+import { MealType } from '@prisma/client';
+import { Beef, Cookie, Flame, Trash2, Wheat } from 'lucide-react';
 import Image from 'next/image';
-
-type MealWithFoods = Meal & {
-  foods: (MealFood & {
-    food: {
-      id: string;
-      name: string;
-      brand: string | null;
-      image: string | null;
-      calories: number;
-      proteins: number;
-      carbs: number;
-      fats: number;
-    };
-  })[];
-};
+import { Button } from './ui/button';
 
 const MEAL_TYPE_LABELS: Record<MealType, string> = {
   BREAKFAST: '🌅 Breakfast',
@@ -30,27 +16,13 @@ const MEAL_TYPE_LABELS: Record<MealType, string> = {
 };
 
 export function DailyMeals() {
-  const [meals, setMeals] = useState<MealWithFoods[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const user = useUserStore((state) => state.user);
+  const { user } = useUserStore();
+  const { meals, isLoading, fetchMeals, removeMeal } = useMealsStore();
 
   useEffect(() => {
-    async function fetchMeals() {
-      if (!user?.id) return;
-
-      try {
-        const result = await getDailyMeals(user.id);
-        if (result.success) {
-          setMeals(result.meals);
-        }
-      } catch (error) {
-        console.error('Failed to fetch meals:', error);
-      } finally {
-        setIsLoading(false);
-      }
+    if (user?.id) {
+      fetchMeals(user.id);
     }
-
-    fetchMeals();
   }, [user?.id]);
 
   if (isLoading) {
@@ -124,6 +96,13 @@ export function DailyMeals() {
                         />
                       </div>
                     </div>
+                    <Button
+                      size="icon"
+                      className="inset-0 hover:bg-destructive hover:text-destructive-foreground rounded-md"
+                      onClick={async () => removeMeal(mealFood.id)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
                 ))}
               </div>

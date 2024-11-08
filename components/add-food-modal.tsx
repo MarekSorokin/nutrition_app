@@ -21,6 +21,8 @@ import { Product } from '@/types/food';
 import { MealType } from '@prisma/client';
 import { addFoodToMeal } from '@/app/actions/meals';
 import { toast } from 'sonner';
+import { useMealsStore } from '@/lib/store/meals-store';
+import { useUserStore } from '@/lib/store/user-store';
 
 interface AddFoodModalProps {
   food: Product;
@@ -32,7 +34,8 @@ export function AddFoodModal({ food, isOpen, onClose }: AddFoodModalProps) {
   const [amount, setAmount] = useState('100');
   const [mealType, setMealType] = useState<MealType>(MealType.SNACK);
   const [isSaving, setIsSaving] = useState(false);
-
+  const { fetchMeals } = useMealsStore();
+  const { user } = useUserStore();
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
@@ -52,7 +55,9 @@ export function AddFoodModal({ food, isOpen, onClose }: AddFoodModalProps) {
         toast.error(result.error);
         return;
       }
-
+      if (user?.id) {
+        await fetchMeals(user.id);
+      }
       toast.success('Food added to meal!');
       onClose();
     } catch (error) {

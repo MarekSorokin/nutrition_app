@@ -6,6 +6,7 @@ import { SaveFoodInput } from '@/types/food';
 import { MealType } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { startOfDay, endOfDay } from 'date-fns';
+import { useUserStore } from '@/lib/store/user-store';
 
 interface AddFoodToMealInput extends SaveFoodInput {
   amount: number;
@@ -108,5 +109,30 @@ export async function getDailyMeals(userId: string) {
   } catch (error) {
     console.error('Failed to get daily meals:', error);
     return { error: 'Failed to fetch meals' };
+  }
+}
+export async function deleteFoodFromMeal(mealId: string) {
+  try {
+    console.log('Deleting meal foods', mealId);
+    const exists = await prisma.mealFood.findFirst({
+      where: {
+        id: mealId,
+      },
+    });
+
+    if (!exists) {
+      return { error: 'Meal food not found' };
+    }
+
+    await prisma.mealFood.delete({
+      where: {
+        id: mealId,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete food from meal:', error);
+    return { error: 'Failed to delete food from meal' };
   }
 }

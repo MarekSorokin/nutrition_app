@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react';
-import { getDailyNutrition, type DailyNutrition } from '@/app/actions/nutrition';
 import { useUserStore } from '@/lib/store/user-store';
+import { useNutritionStore } from '@/lib/store/nutrition-store';
+import { useMealsStore } from '@/lib/store/meals-store';
 
 const DAILY_GOALS = {
   calories: 2500,
@@ -13,31 +14,18 @@ const DAILY_GOALS = {
 };
 
 export function NutritionStats() {
-  const [nutrition, setNutrition] = useState<DailyNutrition>({
-    calories: 0,
-    proteins: 0,
-    carbs: 0,
-    fats: 0,
-  });
   const [isLoading, setIsLoading] = useState(true);
   const user = useUserStore((state) => state.user);
+  const { nutrition } = useNutritionStore();
+  const { meals } = useMealsStore();
 
   useEffect(() => {
-    async function fetchNutrition() {
-      if (!user?.id) return;
+    if (!user?.id) return;
 
-      try {
-        const data = await getDailyNutrition(user.id);
-        setNutrition(data);
-      } catch (error) {
-        console.error('Failed to fetch nutrition:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchNutrition();
-  }, [user?.id]);
+    setIsLoading(true);
+    useNutritionStore.getState().recalculateNutrition();
+    setIsLoading(false);
+  }, [user?.id, meals]);
 
   if (isLoading) {
     return <div>Loading...</div>;
