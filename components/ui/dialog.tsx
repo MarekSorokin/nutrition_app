@@ -3,7 +3,6 @@
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Cross2Icon } from '@radix-ui/react-icons';
-import PropTypes from 'prop-types';
 
 import { cn } from '@/lib/utils';
 
@@ -30,10 +29,6 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-DialogOverlay.propTypes = {
-  className: PropTypes.string,
-};
-
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -57,10 +52,6 @@ const DialogContent = React.forwardRef<
   </DialogPortal>
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
-
-DialogContent.propTypes = {
-  className: PropTypes.string,
-};
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)} {...props} />
@@ -87,10 +78,6 @@ const DialogTitle = React.forwardRef<
 ));
 DialogTitle.displayName = DialogPrimitive.Title.displayName;
 
-DialogTitle.propTypes = {
-  className: PropTypes.string,
-};
-
 const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
@@ -102,10 +89,6 @@ const DialogDescription = React.forwardRef<
   />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
-
-DialogDescription.propTypes = {
-  className: PropTypes.string,
-};
 
 export {
   Dialog,
