@@ -16,7 +16,7 @@ interface Food {
   proteins: number;
   carbs: number;
   fats: number;
-  barcode: string | null;
+  barcode?: string | null;
 }
 
 interface EditFoodModalProps {
@@ -60,7 +60,7 @@ export function EditFoodModal({ food, onClose }: EditFoodModalProps) {
       toast.success('Food updated successfully!');
       onClose();
     } catch (error) {
-      toast.error('Failed to update food');
+      toast.error('Failed to update food: ' + (error as Error).message);
     } finally {
       setIsSubmitting(false);
     }

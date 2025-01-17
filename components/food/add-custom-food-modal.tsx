@@ -68,7 +68,7 @@ export function AddCustomFoodModal({ barcode, onClose }: AddCustomFoodModalProps
 
       onClose();
     } catch (error) {
-      toast.error('Failed to add food');
+      toast.error('Failed to add food: ' + (error as Error).message);
     } finally {
       setIsSubmitting(false);
     }

@@ -44,7 +44,7 @@ export default function FoodsPage() {
         toast.error('Failed to load foods');
       }
     } catch (error) {
-      toast.error('Error loading foods');
+      toast.error('Error loading foods: ' + (error as Error).message);
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +62,7 @@ export default function FoodsPage() {
         toast.error(result.error || 'Failed to delete food');
       }
     } catch (error) {
-      toast.error('Error deleting food');
+      toast.error('Error deleting food: ' + (error as Error).message);
     }
   };
 

@@ -3,7 +3,7 @@
 import { memo } from 'react';
 import { signIn, signOut } from 'next-auth/react';
 import { Button } from './ui/button';
-import { LogIn, LogOut, User } from 'lucide-react';
+import { LogIn, User } from 'lucide-react';
 import { useUserStore } from '@/lib/store/user-store';
 import Link from 'next/link';
 import {
