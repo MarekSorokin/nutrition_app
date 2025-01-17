@@ -6,19 +6,15 @@ import { DailyMeals } from '@/components/meals/daily-meals';
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-4 sm:p-8 flex flex-col gap-8 w-full max-w-3xl mx-auto">
+    <main className="py-6 space-y-8">
       {/* Search Section */}
       <FoodSearch />
 
       {/* Stats Grid */}
-      <div className="w-full max-w-3xl mx-auto">
-        <NutritionStats />
-      </div>
+      <NutritionStats />
 
       {/* Daily Meals */}
-      <div className="w-full max-w-3xl mx-auto">
-        <DailyMeals />
-      </div>
+      <DailyMeals />
     </main>
   );
 }

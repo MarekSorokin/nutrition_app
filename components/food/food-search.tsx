@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Search, X, Globe, Barcode } from 'lucide-react';
+import { Search, X, Globe, Barcode, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store/app-store';
@@ -9,11 +9,13 @@ import { searchFood, searchOnline } from '@/app/actions';
 import { debounce } from '@/lib/utils/debounce';
 import { SearchResults } from './search-results';
 import { BarcodeScanner } from './barcode-scanner';
+import { AddCustomFoodModal } from './add-custom-food-modal';
 import { toast } from 'sonner';
 
 export function FoodSearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [showAddCustomFood, setShowAddCustomFood] = useState(false);
   const {
     currentQuery,
     setCurrentQuery,
@@ -29,18 +31,26 @@ export function FoodSearch() {
 
       try {
         setIsLoading(true);
-        if (searchType === 'local') {
-          const localResults = await searchFood(query);
+
+        // Always check local database first
+        const localResults = await searchFood(query);
+        if (localResults.products.length > 0) {
           setSearchResults(localResults);
           setDisplaySearchResults(true);
-        } else {
+          return;
+        }
+
+        // If no local results and searchType is online, search online
+        if (searchType === 'online') {
           const onlineResults = await searchOnline(query);
           if (onlineResults.products.length === 0) {
-            toast.info('No results found on Open Food Facts');
+            toast.info('No results found. You can add a custom food item.');
             return;
           }
           setSearchResults(onlineResults);
           setDisplaySearchResults(true);
+        } else {
+          toast.info('No local results found. Try searching online or add a custom food item.');
         }
       } catch (error) {
         console.error('Search error:', error);
@@ -126,12 +136,21 @@ export function FoodSearch() {
           >
             <Barcode className="size-4" />
           </Button>
+          <Button
+            onClick={() => setShowAddCustomFood(true)}
+            variant="outline"
+            className="gap-2"
+            title="Add Custom Food"
+          >
+            <Plus className="size-4" />
+          </Button>
         </div>
 
         {displaySearchResults && searchResults && <SearchResults results={searchResults} />}
       </div>
 
       {showScanner && <BarcodeScanner onClose={() => setShowScanner(false)} />}
+      {showAddCustomFood && <AddCustomFoodModal onClose={() => setShowAddCustomFood(false)} />}
     </>
   );
 }

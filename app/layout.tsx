@@ -46,7 +46,9 @@ export default async function RootLayout({
         <SessionProvider>
           <AuthProvider>
             <Navbar />
-            {children}
+            <div className="flex-1 flex justify-center">
+              <div className="w-full max-w-6xl px-4">{children}</div>
+            </div>
           </AuthProvider>
         </SessionProvider>
         <Toaster />

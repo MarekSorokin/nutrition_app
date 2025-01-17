@@ -3,16 +3,22 @@
 import { memo } from 'react';
 import { signIn, signOut } from 'next-auth/react';
 import { Button } from './ui/button';
-import { LogIn, LogOut } from 'lucide-react';
+import { LogIn, LogOut, User } from 'lucide-react';
 import { useUserStore } from '@/lib/store/user-store';
 import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 function NavbarComponent() {
   const { user, isLoading } = useUserStore();
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center px-4">
+      <div className="flex h-14 items-center px-4">
         <div className="flex items-center flex-1">
           <Link href="/" className="flex items-center gap-2 font-bold">
             Food Tracker
@@ -29,10 +35,21 @@ function NavbarComponent() {
               <span className="text-sm text-muted-foreground hidden md:inline-block">
                 {user.email}
               </span>
-              <Button onClick={() => signOut()} variant="destructive" size="sm" className="gap-1">
-                <LogOut className="size-4" />
-                <span className="hidden sm:inline-block">Odhlásit</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <User className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/foods">Moje potraviny</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive" onClick={() => signOut()}>
+                    Odhlásit se
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <Button
