@@ -24,7 +24,7 @@ export function BarcodeScanner({ onClose }: BarcodeScannerProps) {
 
     async function requestCameraPermission() {
       console.log('Requesting camera permission...');
-      
+
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error('mediaDevices API not supported');
@@ -39,10 +39,10 @@ export function BarcodeScanner({ onClose }: BarcodeScannerProps) {
             facingMode: { ideal: 'environment' },
             width: { ideal: 1280 },
             height: { ideal: 720 },
-          }
+          },
         });
-        
-        stream.getTracks().forEach(track => track.stop());
+
+        stream.getTracks().forEach((track) => track.stop());
         return true;
       } catch (error) {
         console.error('Permission error:', error);
@@ -62,13 +62,13 @@ export function BarcodeScanner({ onClose }: BarcodeScannerProps) {
         }
 
         setIsScanning(true);
-        
+
         const constraints = {
           video: {
             facingMode: 'environment',
             width: { ideal: 1280 },
             height: { ideal: 720 },
-          }
+          },
         };
 
         controlsRef.current = await codeReader.decodeFromConstraints(
@@ -133,14 +133,13 @@ export function BarcodeScanner({ onClose }: BarcodeScannerProps) {
       </div>
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="relative w-full max-w-md overflow-hidden rounded-lg bg-black">
-          <video 
-            ref={videoRef} 
-            className="h-full w-full" 
-            playsInline 
-            autoPlay 
-            muted 
+          <video
+            ref={videoRef}
+            className="h-full w-full"
+            playsInline
+            autoPlay
+            muted
             style={{ objectFit: 'cover' }}
-            webkit-playsinline="true"
           />
           {!isScanning && !permissionDenied && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
