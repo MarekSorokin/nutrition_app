@@ -22,11 +22,12 @@ interface AddFoodModalProps {
   food: Product | null;
   open: boolean;
   onClose: () => void;
+  initialMealType?: MealType;
 }
 
-export function AddFoodModal({ food, open, onClose }: AddFoodModalProps) {
+export function AddFoodModal({ food, open, onClose, initialMealType }: AddFoodModalProps) {
   const [amount, setAmount] = useState('100');
-  const [mealType, setMealType] = useState<MealType>(MealType.BREAKFAST);
+  const [mealType, setMealType] = useState<MealType>(initialMealType || MealType.BREAKFAST);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { fetchMeals } = useMealsStore();
   const { user } = useUserStore();

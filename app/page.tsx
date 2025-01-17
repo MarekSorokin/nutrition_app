@@ -6,7 +6,7 @@ import { DailyMeals } from '@/components/meals/daily-meals';
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-4 sm:p-8 flex flex-col gap-8 w-full max-w-3xl mx-auto">
+    <main className="min-h-screen flex flex-col gap-8 w-full max-w-3xl mx-auto">
       {/* Search Section */}
       <FoodSearch />
 
