@@ -10,7 +10,7 @@ export default async function RegisterPage() {
   }
 
   return (
-    <main className="container flex min-h-screen items-center justify-center">
+    <main className="flex min-h-screen items-center justify-center">
       <div className="w-full max-w-sm space-y-4">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>

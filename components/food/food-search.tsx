@@ -82,7 +82,6 @@ export function FoodSearch() {
               placeholder="Search foods..."
               value={currentQuery}
               onChange={handleInputChange}
-              className="pr-20"
             />
             {currentQuery && (
               <Button
