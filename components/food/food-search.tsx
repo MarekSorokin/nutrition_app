@@ -86,13 +86,9 @@ export function FoodSearch() {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex gap-2">
+        <div className="flex">
+          <Input placeholder="Search foods..." value={currentQuery} onChange={handleInputChange} />
           <div className="relative flex-1">
-            <Input
-              placeholder="Search foods..."
-              value={currentQuery}
-              onChange={handleInputChange}
-            />
             {currentQuery && (
               <Button
                 size="sm"
@@ -105,10 +101,12 @@ export function FoodSearch() {
               </Button>
             )}
           </div>
+        </div>
+        <div className="flex gap-2">
           <Button
             onClick={() => performSearch(currentQuery)}
             disabled={isLoading || !currentQuery.trim()}
-            className="gap-2"
+            className="gap-2 w-full"
           >
             {isLoading ? (
               <div className="size-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
