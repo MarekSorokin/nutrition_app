@@ -1,38 +1,53 @@
 'use client';
 
+import { memo } from 'react';
 import { signIn, signOut } from 'next-auth/react';
 import { Button } from './ui/button';
-import { LogIn, LogOut } from 'lucide-react';
+import { Link, LogIn, LogOut } from 'lucide-react';
 import { useUserStore } from '@/lib/store/user-store';
 
-export function Navbar() {
+function NavbarComponent() {
   const { user, isLoading } = useUserStore();
 
   return (
-    <nav className="flex items-center justify-between p-4 bg-gray-800 text-white">
-      <div className="text-lg font-bold">MyApp</div>
-      <div>
-        {isLoading ? (
-          <Button variant="ghost" disabled>
-            <div className="size-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
-          </Button>
-        ) : user ? (
-          <>
-            <span className="text-sm text-muted-foreground">
-              ID: {user.id}, Email: {user.email}
-            </span>
-            <Button onClick={() => signOut()} variant="destructive" className="gap-2">
-              <LogOut className="size-4" />
-              Logout
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <span className="hidden font-bold sm:inline-block">
+            <Link href="/">Food Tracker</Link>
+          </span>
+        </div>
+
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          {isLoading ? (
+            <Button variant="ghost" disabled>
+              <div className="size-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
             </Button>
-          </>
-        ) : (
-          <Button onClick={() => signIn('credentials')} variant="default" className="gap-2">
-            <LogIn className="size-4" />
-            Login
-          </Button>
-        )}
+          ) : user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground hidden sm:inline-block">
+                {user.email}
+              </span>
+              <Button onClick={() => signOut()} variant="destructive" size="sm" className="gap-2">
+                <LogOut className="size-4" />
+                <span className="hidden sm:inline-block">Logout</span>
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => signIn('credentials')}
+              variant="default"
+              size="sm"
+              className="gap-2"
+            >
+              <LogIn className="size-4" />
+              <span className="hidden sm:inline-block">Login</span>
+            </Button>
+          )}
+        </div>
       </div>
     </nav>
   );
 }
+
+export const Navbar = memo(NavbarComponent);
